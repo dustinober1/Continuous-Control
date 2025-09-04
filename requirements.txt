@@ -1,0 +1,7 @@
+numpy
+torch
+matplotlib
+pandas
+tqdm
+unityagents
+psutil
