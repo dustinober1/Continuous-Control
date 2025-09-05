@@ -7,7 +7,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-import imageio
+import imageio.v2 as imageio
 from matplotlib import rcParams
 from datetime import datetime
 
@@ -137,6 +137,8 @@ def create_training_gif(scores, out_path='checkpoints/demos/training_progress.gi
     rcParams.update({'figure.autolayout': True, 'figure.max_open_warning': 0})
 
     max_score = max(30, float(np.nanmax(scores)))
+    from io import BytesIO
+
     for t in range(1, len(scores) + 1):
         fig, ax = plt.subplots(figsize=figsize)
         x = np.arange(t)
@@ -154,17 +156,19 @@ def create_training_gif(scores, out_path='checkpoints/demos/training_progress.gi
         ax.legend(loc='upper left')
         ax.grid(alpha=0.3)
 
-    # Render to an in-memory PNG and read it with imageio (robust across backends)
-    from io import BytesIO
+        # Render to an in-memory PNG and read it with imageio (robust across backends)
+        canvas = FigureCanvas(fig)
+        buf = BytesIO()
+        canvas.print_png(buf)
+        buf.seek(0)
+        image = imageio.imread(buf)
+        images.append(image)
+        plt.close(fig)
 
-    canvas = FigureCanvas(fig)
-    buf = BytesIO()
-    canvas.print_png(buf)
-    buf.seek(0)
-    image = imageio.imread(buf)
-    images.append(image)
-    plt.close(fig)
-
-    # Save GIF
-    imageio.mimsave(out_path, images, fps=fps)
+    # Save GIF using duration (ms) to avoid deprecated `fps` kwarg
+    duration_ms = 1000.0 / float(fps) if fps and fps > 0 else None
+    if duration_ms:
+        imageio.mimsave(out_path, images, duration=duration_ms)
+    else:
+        imageio.mimsave(out_path, images)
     return out_path
