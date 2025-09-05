@@ -57,84 +57,122 @@ pip install -r requirements.txt
 
 ### File Structure
 
-```
-continuous-control/
-│
-├── Continuous_Control.ipynb     # Main training notebook
-├── ddpg_agent.py                # DDPG agent implementation
-├── README.md                    # This file
-├── Report.md                    # Technical report
-├── requirements.txt             # Python dependencies
-├── checkpoints/                 # Saved model checkpoints
-│   ├── checkpoint_actor_solved.pth
-│   ├── checkpoint_critic_solved.pth
-│   └── checkpoint_best_score30.11.pth
-└── training_plot.png           # Training progress visualization
-```
+# Continuous Control with Deep Reinforcement Learning
 
-## Instructions
+This repository implements a DDPG (Deep Deterministic Policy Gradient) agent for the Unity ML-Agents Reacher environment and includes tools to train, checkpoint, visualize, and demo results.
 
-### Training the Agent
+The project contains training scripts, a reusable agent implementation (`src/ddpg_agent.py`), utilities for checkpointing and plotting (`src/utils.py`), and a `generate_plot.py` helper that creates publication-ready plots and an animated GIF of training progress.
 
-1. Open the Jupyter notebook:
+## Highlights
+- Training with checkpointing and resume capability
+- Animated training-curve GIF generation (`checkpoints/demos/training_progress.gif`)
+- Headless-friendly plotting (matplotlib Agg backend)
+- Minimal scripts to reproduce training & demos
+
+## Quickstart
+
+1. Install dependencies:
+
 ```bash
-jupyter notebook Continuous_Control.ipynb
+pip install -r requirements.txt
 ```
 
-2. Execute cells in order to:
-   - Initialize the Unity environment
-   - Load the DDPG agent
-   - Train the agent (with automatic checkpointing)
+2. Download and place the Unity environment binary in the project folder (use the Reacher environment from Udacity/Unity). Recommended: Version 2 (20 agents).
 
-3. The training includes:
-   - Automatic checkpoint saving every 5 episodes
-   - Resume capability from previous checkpoints
-   - Early stopping when target score is reached
+3. Run a quick demo that generates an animated training GIF (uses existing checkpoints if present; otherwise uses synthetic example data):
 
-### Using Pre-trained Model
+```bash
+python3 generate_plot.py --checkpoints checkpoints --out checkpoints/demos --fps 8
+```
 
-To load and test the solved model:
+Output:
+- `checkpoints/demos/training_progress.gif` — animated training curve
+- `training_plot.png` — static training plot
+
+## Running Training
+
+Train from the command line (example):
+
+```bash
+python3 src/train.py --env /path/to/Reacher_Linux_x86_64/Reacher.x86_64 --episodes 300
+```
+
+Key `train.py` features:
+- Saves checkpoints to `checkpoints/` every few episodes
+- Can resume from a checkpoint using `--resume <path>`
+- Prints progress with a tqdm bar and maintains best-score tracking
+
+Notes: `src/train.py` expects the Unity environment file path via `--env`.
+
+## Reproducing Results
+
+- To reproduce a run, set a fixed seed (the agent uses `random_seed`), keep environment deterministic where possible, and pass `--resume` with a saved checkpoint to continue training.
+- Example: after a successful run you can replay the best checkpoint and generate visuals:
+
+```bash
+python3 generate_plot.py --checkpoints checkpoints --out checkpoints/demos
+```
+
+Or programmatically:
 
 ```python
-from ddpg_agent import Agent
-import torch
-
-# Create agent
-agent = Agent(state_size=33, action_size=4, random_seed=42)
-
-# Load the trained weights
-agent.actor_local.load_state_dict(torch.load('checkpoint_actor_solved.pth'))
-agent.critic_local.load_state_dict(torch.load('checkpoint_critic_solved.pth'))
-
-# Agent is ready for testing
+from src.utils import find_best_checkpoint
+best = find_best_checkpoint('checkpoints')
+print('Best checkpoint:', best)
 ```
 
-### Resuming Training
+## Demo & Visualizations
 
-The implementation supports resuming from checkpoints:
+- Use `generate_plot.py` to create an animated GIF of the training curve and a static `training_plot.png` for reports.
+- During training you can capture environment frames (if rendering is available) and create videos/GIFs; the utilities are written to be compatible with headless CI by using Matplotlib's Agg backend.
 
-```python
-best_checkpoint = 'checkpoints/checkpoint_best_score30.11.pth'
-scores = ddpg_train_with_checkpoints(
-    env, agent, brain_name,
-    resume_from=best_checkpoint
-)
+## Checkpoints & Model Files
+
+- Checkpoints are saved in `checkpoints/` and include actor/critic weights, optimizer states, episode number and score history.
+- Use `src/utils.find_best_checkpoint()` to locate the best checkpoint automatically.
+
+## Project Layout
+
+```
+Continuous-Control/
+├── Continuous_Control.ipynb     # Notebook with examples and walkthrough
+├── generate_plot.py             # CLI to generate plots and animated GIFs
+├── README.md                    # This file
+├── requirements.txt             # Python dependencies
+├── checkpoints/                 # Saved model checkpoints + demos
+│   └── demos/                   # generated GIFs and sample media
+└── src/
+   ├── ddpg_agent.py            # Agent, networks, replay buffer
+   ├── train.py                 # Training entry point (CLI)
+   └── utils.py                 # Checkpointing, plotting, GIF helper
 ```
 
-## Results
+## Dependencies
 
-- **Environment solved in 112 episodes**
-- **Final average score: 30.11** (over 100 episodes)
-- **Training time**: Approximately 2.5 hours on CPU
+Core dependencies are declared in `requirements.txt`. Notable packages:
+- torch (PyTorch)
+- numpy, pandas
+- matplotlib, imageio, Pillow (for plotting and GIFs)
+- unityagents (for the Unity environment bridge)
 
-The agent successfully learned to control the robotic arm, maintaining contact with the moving target for extended periods.
+## Tips for reviewers / CI
+
+- The visualization tools work in headless CI because `src/utils.py` sets Matplotlib to use the `Agg` backend.
+- If CI cannot run Unity binaries, `generate_plot.py` will still produce the animated GIF using synthetic/example scores.
+
+## Contributing
+
+Contributions are welcome. Suggested small improvements:
+- Add a short `demo.ipynb` that loads a best checkpoint and embeds the GIF
+- Add a GitHub Actions workflow to run a quick smoke test and produce demo artifacts
+- Add unit tests for utility functions in `src/utils.py`
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is released under the MIT License — see `LICENSE`.
 
 ## Acknowledgments
 
 - Udacity Deep Reinforcement Learning Nanodegree
-- Unity ML-Agents Team
-- Original DDPG paper: [Lillicrap et al., 2015](https://arxiv.org/abs/1509.02971)
+- Unity ML-Agents
+- Lillicrap et al., DDPG (2015)
