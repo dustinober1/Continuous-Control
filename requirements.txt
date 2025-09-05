@@ -5,3 +5,6 @@ pandas
 tqdm
 unityagents
 psutil
+
+imageio
+Pillow
