@@ -89,6 +89,37 @@ Output:
 - `checkpoints/demos/training_progress.gif` — animated training curve
 - `training_plot.png` — static training plot
 
+## Docker & smoke tests
+
+You can build and run a reproducible container that generates the demo GIF and runs the lightweight smoke test included in the repo.
+
+Build and generate demo artifacts (preferred, runs the `generate_plot.py` entrypoint):
+
+```bash
+./run.sh
+```
+
+Or run the Docker commands manually:
+
+```bash
+docker build -t continuous-control:latest .
+docker run --rm -v $(pwd)/checkpoints/demos:/app/checkpoints/demos continuous-control:latest --checkpoints checkpoints --out checkpoints/demos --fps 6
+```
+
+Artifacts will be available in `checkpoints/demos/` after the container finishes.
+
+Run the test suite inside the container (quick smoke & verification):
+
+```bash
+docker run --rm continuous-control:latest pytest -q
+```
+
+You can also run tests locally with:
+
+```bash
+pytest -q
+```
+
 ## Running Training
 
 Train from the command line (example):
