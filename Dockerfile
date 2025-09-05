@@ -16,4 +16,4 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # Default entrypoint is to generate plots (safe headless action)
-ENTRYPOINT ["python3", "generate_plot.py"]
+ENTRYPOINT ["python3", "scripts/generate_plot.py"]

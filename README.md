@@ -82,7 +82,7 @@ pip install -r requirements.txt
 3. Run a quick demo that generates an animated training GIF (uses existing checkpoints if present; otherwise uses synthetic example data):
 
 ```bash
-python3 generate_plot.py --checkpoints checkpoints --out checkpoints/demos --fps 8
+python3 scripts/generate_plot.py --checkpoints checkpoints --out checkpoints/demos --fps 8
 ```
 
 Output:
@@ -93,10 +93,10 @@ Output:
 
 You can build and run a reproducible container that generates the demo GIF and runs the lightweight smoke test included in the repo.
 
-Build and generate demo artifacts (preferred, runs the `generate_plot.py` entrypoint):
+Build and generate demo artifacts (preferred, runs the `scripts/generate_plot.py` entrypoint):
 
 ```bash
-./run.sh
+./scripts/run.sh
 ```
 
 Or run the Docker commands manually:
@@ -141,7 +141,7 @@ Notes: `src/train.py` expects the Unity environment file path via `--env`.
 - Example: after a successful run you can replay the best checkpoint and generate visuals:
 
 ```bash
-python3 generate_plot.py --checkpoints checkpoints --out checkpoints/demos
+python3 scripts/generate_plot.py --checkpoints checkpoints --out checkpoints/demos
 ```
 
 Or programmatically:
@@ -167,7 +167,9 @@ print('Best checkpoint:', best)
 ```
 Continuous-Control/
 ├── Continuous_Control.ipynb     # Notebook with examples and walkthrough
-├── generate_plot.py             # CLI to generate plots and animated GIFs
+├── scripts/                     # CLI scripts (generate_plot, run)
+│   ├── generate_plot.py
+│   └── run.sh
 ├── README.md                    # This file
 ├── requirements.txt             # Python dependencies
 ├── checkpoints/                 # Saved model checkpoints + demos
@@ -176,6 +178,8 @@ Continuous-Control/
    ├── ddpg_agent.py            # Agent, networks, replay buffer
    ├── train.py                 # Training entry point (CLI)
    └── utils.py                 # Checkpointing, plotting, GIF helper
+└── notebooks/
+   └── demo.ipynb               # Demo notebook that embeds GIF and shows checkpoint save/load
 ```
 
 ## Dependencies
